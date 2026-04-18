@@ -17,6 +17,15 @@ app.get("/test-db",async(req,res)=>{
     res.status(500).send("Database error");
   }
 });
+app.get("/users", async(req,res) => {
+  try {
+    const result = await pool.query("SELECT * FROM users");
+    res.json(result.rows);
+  } catch (err){
+    console.error(err);
+    res.status(500).json({error: "Failed to fetch users"});
+  }
+});
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
