@@ -8,6 +8,8 @@ const userRoutes = require("./routes/userRoutes");
 app.use("/users", userRoutes);
 const reportRoutes = require("./routes/reportRoutes");
 app.use("/reports",reportRoutes);
+const authRoutes = require("./routes/authRoutes");
+app.use("/auth", authRoutes);
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
