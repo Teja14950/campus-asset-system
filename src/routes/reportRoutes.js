@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const reportController = require("../controllers/reportController");
-
-router.post("/", reportController.createReport);
+const { verifyToken } = require("../middleware/authMiddleware");
+router.post("/", verifyToken, reportController.createReport);
 router.get("/", reportController.getReports);
 router.put("/:id/assign",reportController.assignReport);
 router.get("/analytics/damaged-assets",reportController.getMostDamagedAssets);
