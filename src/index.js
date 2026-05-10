@@ -10,7 +10,8 @@ const reportRoutes = require("./routes/reportRoutes");
 app.use("/reports",reportRoutes);
 const authRoutes = require("./routes/authRoutes");
 app.use("/auth", authRoutes);
-
+const roomRoutes = require("./routes/roomRoutes");
+app.use("/rooms", roomRoutes);
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
