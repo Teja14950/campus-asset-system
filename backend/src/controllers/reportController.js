@@ -2,8 +2,8 @@ const pool = require("../db");
 
 exports.createReport = async (req,res) => {
   try {
-    const {user_id, asset_id, description} = req.body;
-
+    const { asset_id, description} = req.body;
+    const user_id = req.user.id;
     if(!user_id||!asset_id||!description) {
       return res.status(400).json({error: "All fields are required"});
     }
