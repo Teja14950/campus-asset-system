@@ -7,6 +7,6 @@ router.post("/", verifyToken, reportController.createReport);
 router.get("/", reportController.getReports);
 router.put("/:id/assign",verifyToken,authorizeRoles("admin"),reportController.assignReport);
 router.get("/analytics/damaged-assets",reportController.getMostDamagedAssets);
-router.put("/:id/status",verifyToken, authorizeRoles("repair_person"), reportController.updateReportStatus);
+router.put("/:id/status",verifyToken, authorizeRoles("repairer","admin"), reportController.updateReportStatus);
 router.get("/analytics/repair-time", reportController.getAverageRepairTime);
 module.exports = router;

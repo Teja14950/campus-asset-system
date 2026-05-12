@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-
+import {io} from "socket.io-client";
 function RoomMap() {
   const [roomData, setRoomData] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [description, setDescription] = useState("");
   const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc4NTIyOTg0LCJleHAiOjE3Nzg2MDkzODR9.IQQJ1r8EQBF1HqlN-C54BkH_vSD73s3Ynnfl1o8GHME";
   useEffect(() => {
+    // Fetch initial room data
     fetch("http://localhost:3000/rooms/1/assets")
       .then((res) => res.json())
       .then((data) => {
@@ -13,9 +14,39 @@ function RoomMap() {
         setRoomData(data);
       })
       .catch((err) => console.error(err));
+    const socket = io("http://localhost:3000");
+    socket.on("reportUpdated", (updatedReport) => {
+      console.log("Realtime update received:", updatedReport);
+      setRoomData((prevData) => {
+        if (!prevData) return prevData;
+        const updatedAssets = prevData.assets.map((asset) => {
+          if (asset.id === updatedReport.asset_id) {
+            return {
+              ...asset,
+              status: updatedReport.status,
+            };
+          }
+          return asset;
+        });
+        return {
+          ...prevData,
+          assets: updatedAssets,
+        };
+      });
+      alert(
+        `Asset ${updatedReport.asset_id} updated to ${updatedReport.status}`
+      );
+    });
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const submitReport = async () => {
+    if (!selectedAsset) {
+      alert("Please select an asset on the map");
+      return;
+    }
     if(!description.trim()){
       alert("Please describe the issue");
       return;
@@ -49,6 +80,20 @@ function RoomMap() {
     if (!roomData) {
     return <p>Loading room...</p>;
   }
+  const getStatusColor = (status) => {
+  switch (status) {
+    case "pending":
+      return "red";
+
+    case "assigned":
+      return "orange";
+
+    case "resolved":
+    case "working":
+    default:
+      return "green";
+  }
+};
   return (
     <div>
       <h2>{roomData.room.name}</h2>
@@ -79,15 +124,10 @@ function RoomMap() {
               position: "absolute",
               left: asset.x_position,
               top: asset.y_position,
-              transform: "translate(-50%,50%)",
+              transform: "translate(-50%,-50%)",
               width: "20px",
               height: "20px",
-              backgroundColor:
-                asset.status === "working"
-                  ?"green"
-                  : asset.status === "pending"
-                  ? "orange"
-                  : "red",
+              backgroundColor: getStatusColor(asset.status),
               borderRadius: "50%",
               cursor: "pointer",
               border: "2px solid white",

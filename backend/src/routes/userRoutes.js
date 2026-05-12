@@ -6,5 +6,5 @@ const { authorizeRoles } = require("../middleware/roleMiddleware");
 router.get("/", userController.getUsers);
 router.post("/", userController.createUser);
 router.put("/:id", userController.updateUser);
-router.delete("/:id", verifyToken,authorizeRoles("repair_person"),userController.deleteUser);
+router.delete("/:id", verifyToken,authorizeRoles("repairer"),userController.deleteUser);
 module.exports = router;
