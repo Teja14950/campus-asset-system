@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -47,7 +48,7 @@ function Login() {
       );
 
       alert("Login successful!");
-
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Something went wrong");

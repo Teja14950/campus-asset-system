@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -7,7 +8,7 @@ function Register() {
     password: "",
     role: "reporter",
   });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -40,7 +41,7 @@ function Register() {
       }
 
       alert("Registration successful!");
-
+      navigate("/login");
       setFormData({
         name: "",
         email: "",
@@ -111,10 +112,6 @@ function Register() {
 
             <option value="repair_person">
               Repair Person
-            </option>
-
-            <option value="admin">
-              Admin
             </option>
           </select>
         </div>

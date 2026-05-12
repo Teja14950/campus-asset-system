@@ -7,7 +7,7 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
+import Dashboard from "./pages/Dashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -28,11 +28,13 @@ function App() {
           path="/register"
           element={<Register />}
         />
-
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
       </Routes>
 
     </BrowserRouter>
   );
 }
-
 export default App;
