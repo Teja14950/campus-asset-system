@@ -4,7 +4,7 @@ function RoomMap() {
   const [roomData, setRoomData] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [description, setDescription] = useState("");
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc4NTIyOTg0LCJleHAiOjE3Nzg2MDkzODR9.IQQJ1r8EQBF1HqlN-C54BkH_vSD73s3Ynnfl1o8GHME";
+  const token = localStorage.getItem("token");
   useEffect(() => {
     // Fetch initial room data
     fetch("http://localhost:3000/rooms/1/assets")
@@ -43,6 +43,10 @@ function RoomMap() {
   }, []);
 
   const submitReport = async () => {
+    if (!token) {
+      alert("Please login first");
+      return;
+    }
     if (!selectedAsset) {
       alert("Please select an asset on the map");
       return;
