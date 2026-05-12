@@ -12,6 +12,15 @@ exports.createReport = async (req,res) => {
       "INSERT INTO reports (user_id,asset_id,description) VALUES ($1,$2,$3) RETURNING *",
       [user_id,asset_id,description]
     );
+    await pool.query(
+      `UPDATE assets SET status = 'pending' WHERE id = $1`,
+      [asset_id]
+    );
+    const io = req.app.get("io");
+    io.emit("reportUpdated", {
+      asset_id,
+      status: "pending",
+    });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -30,22 +39,53 @@ exports.getReports = async (req,res) => {
   }
 };
 
-exports.assignReport = async (req,res) => {
-  try{
-    const {id} = req.params;
-    const {assigned_to} = req.body;
+exports.assignReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assigned_to } = req.body;
 
+    // update report
     const result = await pool.query(
-      "UPDATE reports SET assigned_to = $1, status = 'assigned' WHERE id = $2 RETURNING *",
-      [assigned_to,id]
+      `UPDATE reports
+       SET assigned_to = $1,
+           status = 'assigned'
+       WHERE id = $2
+       RETURNING *`,
+      [assigned_to, id]
     );
 
-    if(result.rows.length===0){
-      return res.status(404).json({error: "Report not found"});
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Report not found",
+      });
     }
-    res.json(result.rows[0]);
+
+    const report = result.rows[0];
+
+    // update asset operational status
+    await pool.query(
+      `UPDATE assets
+       SET status = 'under_repair'
+       WHERE id = $1`,
+      [report.asset_id]
+    );
+
+    // realtime broadcast
+    const io = req.app.get("io");
+
+    io.emit("reportUpdated", {
+      asset_id: report.asset_id,
+      status: "under_repair",
+    });
+
+    res.json(report);
+
   } catch (err) {
-    res.status(500).json({error: "Failed to assign report"});
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed to assign report",
+    });
   }
 };
 
@@ -60,32 +100,61 @@ exports.getMostDamagedAssets = async (req,res) => {
   }
 };
 
-exports.updateReportStatus = async (req,res) => {
+exports.updateReportStatus = async (req, res) => {
   try {
-    const {id} = req.params;
-    const {status} = req.body;
-
+    const { id } = req.params;
+    const { status } = req.body;
+    // fetch report first
+    const reportResult = await pool.query(
+      "SELECT * FROM reports WHERE id = $1",
+      [id]
+    );
+    const report = reportResult.rows[0];
+    if (!report) {
+      return res.status(404).json({
+        error: "Report not found",
+      });
+    }
+    // update report status
     let query;
+    if (status === "resolved") {
+      query =
+        `UPDATE reports SET status = $1,resolved_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`;
+    } else {
+      query =
+        `UPDATE reports SET status = $1 WHERE id = $2 RETURNING *`;
+    }
 
-    if(status === 'resolved') {
-      query = 'UPDATE reports SET status = $1, resolved_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *';
+    const result = await pool.query(query, [status, id]);
+    // determine asset operational status
+    let assetStatus = "working";
+    if (status === "pending") {
+      assetStatus = "pending";
     }
-    else {
-      query = 'UPDATE reports SET status = $1 WHERE id = $2 RETURNING *';
+    if (status === "assigned") {
+      assetStatus = "under_repair";
     }
-
-    const result = await pool.query(query,[status,id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Report not found" });
+    if (status === "resolved") {
+      assetStatus = "working";
     }
+    // update asset status
+    await pool.query(
+      `UPDATE assets SET status = $1 WHERE id = $2`,
+      [assetStatus, report.asset_id]
+    );
+    // realtime event
     const io = req.app.get("io");
     io.emit("reportUpdated", {
-      asset_id: result.rows[0].asset_id,
-      status,
+      asset_id: report.asset_id,
+      status: assetStatus,
     });
     res.json(result.rows[0]);
-  } catch {
-    res.status(500).json({error: "Failed to update status"});
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed to update status",
+    });
   }
 };
 

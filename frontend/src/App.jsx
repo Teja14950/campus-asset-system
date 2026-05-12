@@ -1,11 +1,8 @@
-import RoomMap from "./components/RoomMap";
+import Register from "./pages/Register";
 
 function App() {
   return (
-    <div>
-      <h1>Campus Asset System</h1>
-      <RoomMap />
-    </div>
+    <Register />
   );
 }
 
