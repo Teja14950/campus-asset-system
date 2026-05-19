@@ -39,6 +39,34 @@ exports.getReports = async (req,res) => {
   }
 };
 
+exports.getMyReports = async (req,res) => {
+  try {
+
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM reports
+      WHERE assigned_to = $1
+      ORDER BY created_at DESC
+      `,
+      [userId]
+    );
+
+    res.json(result.rows);
+
+  } catch(err){
+
+    console.error(err);
+
+    res.status(500).json({
+      error:"Failed to fetch reports"
+    });
+
+  }
+};
+
 exports.assignReport = async (req, res) => {
   try {
     const { id } = req.params;

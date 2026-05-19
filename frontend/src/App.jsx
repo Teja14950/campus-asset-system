@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import RepairerDashboard from "./pages/repairerDashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -32,8 +33,11 @@ function App() {
           path="/dashboard"
           element={<Dashboard />}
         />
+        <Route
+          path="/repair-dashboard"
+          element={<RepairerDashboard />}
+        />
       </Routes>
-
     </BrowserRouter>
   );
 }

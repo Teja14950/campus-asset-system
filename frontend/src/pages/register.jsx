@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -8,7 +8,9 @@ function Register() {
     password: "",
     role: "reporter",
   });
+
   const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -33,21 +35,21 @@ function Register() {
 
       const data = await response.json();
 
-      console.log(data);
-
       if (!response.ok) {
         alert(data.error || "Registration failed");
         return;
       }
 
-      alert("Registration successful!");
-      navigate("/login");
+      alert("Registration successful");
+
       setFormData({
         name: "",
         email: "",
         password: "",
         role: "reporter",
       });
+
+      navigate("/login");
 
     } catch (err) {
       console.error(err);
@@ -56,12 +58,38 @@ function Register() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Register</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "#f5f5f5",
+      }}
+    >
+      <div
+        style={{
+          width: "400px",
+          background: "white",
+          padding: "35px",
+          borderRadius: "10px",
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ textAlign: "center" }}>
+          Register
+        </h2>
 
-      <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "15px",
+            marginTop: "20px",
+          }}
+        >
 
-        <div>
           <input
             type="text"
             name="name"
@@ -69,12 +97,9 @@ function Register() {
             value={formData.name}
             onChange={handleChange}
             required
+            style={{ padding: "10px" }}
           />
-        </div>
 
-        <br />
-
-        <div>
           <input
             type="email"
             name="email"
@@ -82,12 +107,9 @@ function Register() {
             value={formData.email}
             onChange={handleChange}
             required
+            style={{ padding: "10px" }}
           />
-        </div>
 
-        <br />
-
-        <div>
           <input
             type="password"
             name="password"
@@ -95,34 +117,49 @@ function Register() {
             value={formData.password}
             onChange={handleChange}
             required
+            style={{ padding: "10px" }}
           />
-        </div>
 
-        <br />
-
-        <div>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
+            style={{ padding: "10px" }}
           >
             <option value="reporter">
               Reporter
             </option>
 
-            <option value="repair_person">
-              Repair Person
+            <option value="repairer">
+              Repairer
             </option>
           </select>
-        </div>
 
-        <br />
+          <button
+            type="submit"
+            style={{
+              padding: "12px",
+              cursor: "pointer",
+            }}
+          >
+            Register
+          </button>
 
-        <button type="submit">
-          Register
-        </button>
+        </form>
 
-      </form>
+        <p
+          style={{
+            marginTop: "15px",
+            textAlign: "center",
+          }}
+        >
+          Already have an account?{" "}
+          <Link to="/login">
+            Login
+          </Link>
+        </p>
+
+      </div>
     </div>
   );
 }

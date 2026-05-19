@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -31,24 +33,29 @@ function Login() {
 
       const data = await response.json();
 
-      console.log(data);
-
       if (!response.ok) {
         alert(data.error || "Login failed");
         return;
       }
 
-      // store token
-      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "token",
+        data.token
+      );
 
-      // store user
       localStorage.setItem(
         "user",
         JSON.stringify(data.user)
       );
 
-      alert("Login successful!");
-      navigate("/dashboard");
+      alert("Login successful");
+      if(data.user.role==="repairer"){
+        navigate("/repair-dashboard");
+      }
+      else{
+        navigate("/dashboard");
+      }
+
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
@@ -56,12 +63,42 @@ function Login() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Login</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "#f5f5f5",
+      }}
+    >
+      <div
+        style={{
+          width: "400px",
+          background: "white",
+          padding: "35px",
+          borderRadius: "10px",
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2
+          style={{
+            textAlign: "center",
+          }}
+        >
+          Login
+        </h2>
 
-      <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "15px",
+            marginTop: "20px",
+          }}
+        >
 
-        <div>
           <input
             type="email"
             name="email"
@@ -69,12 +106,11 @@ function Login() {
             value={formData.email}
             onChange={handleChange}
             required
+            style={{
+              padding: "10px",
+            }}
           />
-        </div>
 
-        <br />
-
-        <div>
           <input
             type="password"
             name="password"
@@ -82,16 +118,36 @@ function Login() {
             value={formData.password}
             onChange={handleChange}
             required
+            style={{
+              padding: "10px",
+            }}
           />
-        </div>
 
-        <br />
+          <button
+            type="submit"
+            style={{
+              padding: "12px",
+              cursor: "pointer",
+            }}
+          >
+            Login
+          </button>
 
-        <button type="submit">
-          Login
-        </button>
+        </form>
 
-      </form>
+        <p
+          style={{
+            marginTop: "15px",
+            textAlign: "center",
+          }}
+        >
+          New user?{" "}
+          <Link to="/register">
+            Register
+          </Link>
+        </p>
+
+      </div>
     </div>
   );
 }

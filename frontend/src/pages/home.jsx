@@ -15,35 +15,52 @@ function Home() {
         style={{
           textAlign: "center",
           background: "white",
-          padding: "40px",
-          borderRadius: "10px",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          padding: "50px",
+          borderRadius: "12px",
+          boxShadow: "0 0 15px rgba(0,0,0,0.1)",
+          width: "550px",
         }}
       >
         <h1>
           Campus Asset Management System
         </h1>
 
-        <p>
-          Realtime repair tracking and spatial asset management
+        <p
+          style={{
+            color: "gray",
+            marginTop: "15px",
+          }}
+        >
+          Realtime spatial asset tracking, QR-based issue reporting,
+          and repair workflow management for organizations
         </p>
 
         <div
           style={{
-            marginTop: "20px",
+            marginTop: "25px",
             display: "flex",
             justifyContent: "center",
             gap: "15px",
           }}
         >
           <Link to="/login">
-            <button>
+            <button
+              style={{
+                padding: "10px 20px",
+                cursor: "pointer",
+              }}
+            >
               Login
             </button>
           </Link>
 
           <Link to="/register">
-            <button>
+            <button
+              style={{
+                padding: "10px 20px",
+                cursor: "pointer",
+              }}
+            >
               Register
             </button>
           </Link>

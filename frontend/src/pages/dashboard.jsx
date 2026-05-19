@@ -1,15 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import RoomMap from "../components/RoomMap";
 
 function Dashboard() {
   const navigate = useNavigate();
+
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
+
   const [building, setBuilding] = useState("");
   const [block, setBlock] = useState("");
   const [floor, setFloor] = useState("");
   const [room, setRoom] = useState("");
-  const user = JSON.parse(
-    localStorage.getItem("user")
-  );
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -23,21 +26,25 @@ function Dashboard() {
       style={{
         minHeight: "100vh",
         padding: "30px",
-        backgroundColor: "#f5f5f5",
+        background: "#f5f5f5",
       }}
     >
       {/* Header */}
       <div
         style={{
+          background: "white",
+          padding: "20px",
+          borderRadius: "10px",
+          marginBottom: "25px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "30px",
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         }}
       >
         <div>
           <h1>
-            Campus Asset Management Dashboard
+            Campus Asset Dashboard
           </h1>
 
           <p>
@@ -45,21 +52,29 @@ function Dashboard() {
           </p>
         </div>
 
-        <button onClick={handleLogout}>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "10px 15px",
+            cursor: "pointer",
+          }}
+        >
           Logout
         </button>
       </div>
 
-      {/* Main Section */}
+      {/* Navigation Card */}
       <div
         style={{
           background: "white",
-          padding: "20px",
+          padding: "25px",
           borderRadius: "10px",
           boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         }}
       >
-        <h2>Infrastructure Navigation</h2>
+        <h2>
+          Infrastructure Navigation
+        </h2>
 
         <p>
           Select a location to access room monitoring
@@ -68,16 +83,18 @@ function Dashboard() {
         <div
           style={{
             display: "flex",
+            flexWrap: "wrap",
             gap: "15px",
             marginTop: "20px",
-            flexWrap: "wrap",
           }}
         >
 
-          {/* Building */}
           <select
             value={building}
-            onChange={(e) => setBuilding(e.target.value)}
+            onChange={(e) =>
+              setBuilding(e.target.value)
+            }
+            style={{ padding: "10px" }}
           >
             <option value="">
               Select Building
@@ -92,10 +109,12 @@ function Dashboard() {
             </option>
           </select>
 
-          {/* Block */}
           <select
             value={block}
-            onChange={(e) => setBlock(e.target.value)}
+            onChange={(e) =>
+              setBlock(e.target.value)
+            }
+            style={{ padding: "10px" }}
           >
             <option value="">
               Select Block
@@ -110,10 +129,12 @@ function Dashboard() {
             </option>
           </select>
 
-          {/* Floor */}
           <select
             value={floor}
-            onChange={(e) => setFloor(e.target.value)}
+            onChange={(e) =>
+              setFloor(e.target.value)
+            }
+            style={{ padding: "10px" }}
           >
             <option value="">
               Select Floor
@@ -128,10 +149,12 @@ function Dashboard() {
             </option>
           </select>
 
-          {/* Room */}
           <select
             value={room}
-            onChange={(e) => setRoom(e.target.value)}
+            onChange={(e) =>
+              setRoom(e.target.value)
+            }
+            style={{ padding: "10px" }}
           >
             <option value="">
               Select Room
@@ -147,8 +170,15 @@ function Dashboard() {
           </select>
 
         </div>
-        <div style={{ marginTop: "20px" }}>
-          <strong>Selected:</strong>
+
+        <div
+          style={{
+            marginTop: "25px",
+          }}
+        >
+          <strong>
+            Selected:
+          </strong>
 
           {" "}
           {building || "—"}
@@ -160,6 +190,16 @@ function Dashboard() {
           {room || "—"}
         </div>
       </div>
+
+      {room && (
+        <div
+          style={{
+            marginTop: "30px",
+          }}
+        >
+          <RoomMap />
+        </div>
+      )}
     </div>
   );
 }

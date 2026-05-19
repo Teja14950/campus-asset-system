@@ -9,4 +9,5 @@ router.put("/:id/assign",verifyToken,authorizeRoles("admin"),reportController.as
 router.get("/analytics/damaged-assets",reportController.getMostDamagedAssets);
 router.put("/:id/status",verifyToken, authorizeRoles("repairer","admin"), reportController.updateReportStatus);
 router.get("/analytics/repair-time", reportController.getAverageRepairTime);
+router.get("/my-reports",verifyToken,authorizeRoles("repairer"),reportController.getMyReports);
 module.exports = router;
