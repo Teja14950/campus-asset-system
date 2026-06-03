@@ -1,168 +1,247 @@
 import { useEffect, useState } from "react";
-import {io} from "socket.io-client";
-function RoomMap() {
-  const [roomData, setRoomData] = useState(null);
+import { io } from "socket.io-client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+function RoomMap({
+  roomId = 1,
+  role = "reporter",
+  highlightedAssetId = null,
+}) {
+  const [roomData,      setRoomData]      = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
-  const [description, setDescription] = useState("");
+  const [description,   setDescription]  = useState("");
+  const [assetFilter,   setAssetFilter]  = useState("all");
+  const [message,       setMessage]      = useState("");
+  const [updating,      setUpdating]     = useState(false);
   const token = localStorage.getItem("token");
+
   useEffect(() => {
-    // Fetch initial room data
-    fetch("http://localhost:3000/rooms/1/assets")
+    fetch(`${API_URL}/rooms/${roomId}/assets`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setRoomData(data);
-      })
-      .catch((err) => console.error(err));
-    const socket = io("http://localhost:3000");
+      .then((data) => setRoomData(data));
+
+    const socket = io(API_URL);
+
     socket.on("reportUpdated", (updatedReport) => {
-      console.log("Realtime update received:", updatedReport);
-      setRoomData((prevData) => {
-        if (!prevData) return prevData;
-        const updatedAssets = prevData.assets.map((asset) => {
-          if (asset.id === updatedReport.asset_id) {
-            return {
-              ...asset,
-              status: updatedReport.status,
-            };
-          }
-          return asset;
-        });
+      setRoomData((prev) => {
+        if (!prev) return prev;
         return {
-          ...prevData,
-          assets: updatedAssets,
+          ...prev,
+          assets: prev.assets.map((asset) =>
+            asset.id === updatedReport.asset_id
+              ? { ...asset, status: updatedReport.status }
+              : asset
+          ),
         };
       });
-      alert(
-        `Asset ${updatedReport.asset_id} updated to ${updatedReport.status}`
-      );
     });
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+
+    return () => socket.disconnect();
+  }, [roomId]);  // FIX: roomId in dependency array so a new room triggers a fresh fetch
+
+  // FIX: Asset type options were hardcoded (fan/light/tap).
+  // Now derived from actual data so adding a new type doesn't need a frontend change.
+  const assetTypes = roomData
+    ? ["all", ...new Set(roomData.assets.map((a) => a.type))]
+    : ["all"];
+
+  const filteredAssets = roomData?.assets.filter(
+    (asset) => assetFilter === "all" || asset.type === assetFilter
+  );
 
   const submitReport = async () => {
-    if (!token) {
-      alert("Please login first");
-      return;
-    }
-    if (!selectedAsset) {
-      alert("Please select an asset on the map");
-      return;
-    }
-    if(!description.trim()){
-      alert("Please describe the issue");
+    if (!selectedAsset || !description.trim()) {
+      setMessage("Select an asset and describe the issue");
       return;
     }
     try {
-      const response = await fetch("http://localhost:3000/reports", {
+      const res = await fetch(`${API_URL}/reports`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          asset_id: selectedAsset.id,
-          description,
-        }),
+        body: JSON.stringify({ asset_id: selectedAsset.id, description }),
       });
-      const data = await response.json();
-      console.log(data);
-      if(!response.ok){
-        alert(data.error || "Failed to submit report");
+
+      if (!res.ok) {
+        const err = await res.json();
+        setMessage(err.error || "Failed to submit report");
         return;
       }
-      alert("Report submitted successfully!");
+
+      setMessage("Report submitted successfully");
       setDescription("");
-      setSelectedAsset(null);
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
+    } catch {
+      setMessage("Something went wrong");
     }
   };
-    if (!roomData) {
-    return <p>Loading room...</p>;
-  }
-  const getStatusColor = (status) => {
-  switch (status) {
-    case "pending":
-      return "red";
 
-    case "assigned":
-      return "orange";
+  // FIX: Repairer Resolve/Keep Pending buttons had no onClick — they were dead.
+  // This calls PUT /reports/:id/status. We use the selectedAsset's id to find
+  // the latest open report for it, then update its status.
+  const updateAssetStatus = async (status) => {
+    if (!selectedAsset) return;
+    setUpdating(true);
+    setMessage("");
+    try {
+      // Fetch the latest report for this asset to get the report id
+      const reportsRes = await fetch(`${API_URL}/reports`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const allReports = await reportsRes.json();
+      const activeReport = allReports.find(
+        (r) => r.asset_id === selectedAsset.id && r.status !== "resolved"
+      );
 
-    case "resolved":
-    case "working":
-    default:
-      return "green";
-  }
-};
+      if (!activeReport) {
+        setMessage("No active report found for this asset");
+        setUpdating(false);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/reports/${activeReport.id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setMessage(err.error || "Update failed");
+        return;
+      }
+
+      setMessage(`Marked as "${status}"`);
+    } catch {
+      setMessage("Something went wrong");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (!roomData) return <p>Loading room...</p>;
+
   return (
     <div>
       <h2>{roomData.room.name}</h2>
 
-      <div
-        style={{
-          position: "relative",
-          width: "800px",
-          height: "500px",
-          border: "2px solid black",
-        }}
+      {/* FIX: Filter options derived from actual asset types in this room */}
+      <select
+        value={assetFilter}
+        onChange={(e) => setAssetFilter(e.target.value)}
+        style={{ marginBottom: "15px", padding: "8px" }}
       >
+        {assetTypes.map((type) => (
+          <option key={type} value={type}>
+            {type === "all" ? "All Assets" : type.charAt(0).toUpperCase() + type.slice(1) + "s"}
+          </option>
+        ))}
+      </select>
+
+      {/* Room map canvas */}
+      <div style={{
+        position: "relative",
+        width: "900px",
+        height: "550px",
+        border: "2px solid black",
+      }}>
         <img
           src={roomData.room.image_url}
-          alt="Room"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
+          alt="room layout"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
 
-        {roomData.assets.map((asset) => (
+        {filteredAssets.map((asset) => (
           <div
             key={asset.id}
-            title={asset.name}
+            title={`${asset.name} — ${asset.status}`}
+            onClick={() => { setSelectedAsset(asset); setMessage(""); }}
             style={{
               position: "absolute",
-              left: asset.x_position,
-              top: asset.y_position,
-              transform: "translate(-50%,-50%)",
-              width: "20px",
-              height: "20px",
-              backgroundColor: getStatusColor(asset.status),
+              // FIX: Explicit "px" suffix; React does convert numbers to px
+              // in inline styles but being explicit avoids confusion
+              left: `${asset.x_position}px`,
+              top:  `${asset.y_position}px`,
+              transform: "translate(-50%, -50%)",
+              width: "18px",
+              height: "18px",
               borderRadius: "50%",
               cursor: "pointer",
-              border: "2px solid white",
+              border: asset.id === selectedAsset?.id
+                ? "3px solid #333"
+                : "2px solid white",
+              backgroundColor:
+                asset.id === highlightedAssetId ? "blue"
+                : asset.status === "working"     ? "green"
+                : asset.status === "assigned"    ? "orange"
+                : "red",
             }}
-            onClick={() => setSelectedAsset(asset)}
           />
         ))}
       </div>
+
+      {/* Asset detail panel */}
       {selectedAsset && (
-          <div
-            style={{
-              marginTop: "20px",
-              padding: "10px",
-              border: "1px solid gray",
-              width: "400px",
-            }}
-          >
-            <h3>{selectedAsset.name}</h3>
-            <p>Type: {selectedAsset.type}</p>
-            <p>Status: {selectedAsset.status}</p>
-            <textarea
-              placeholder="Describe issue..."
-              rows="4"
-              cols="40"
-              value={description}
-              onChange={(e)=> setDescription(e.target.value)}
-            />
-            <br/>
-            <button onClick={submitReport}>Submit Report</button>
-          </div>
-        )}
+        <div style={{
+          marginTop: "20px", background: "white", padding: "20px",
+          borderRadius: "10px", boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          maxWidth: "500px",
+        }}>
+          <h3>{selectedAsset.name}</h3>
+          <p>Type: {selectedAsset.type}</p>
+          <p>Status: {selectedAsset.status}</p>
+
+          {role === "reporter" && (
+            <>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the issue..."
+                style={{ width: "100%", padding: "10px", marginTop: "10px", height: "80px" }}
+              />
+              <button
+                onClick={submitReport}
+                style={{ marginTop: "10px", padding: "10px 20px", cursor: "pointer" }}
+              >
+                Submit Report
+              </button>
+            </>
+          )}
+
+          {/* FIX: Repairer buttons now call updateAssetStatus() */}
+          {role === "repairer" && (
+            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+              <button
+                onClick={() => updateAssetStatus("resolved")}
+                disabled={updating}
+                style={{
+                  padding: "10px 20px", cursor: "pointer",
+                  background: "#28a745", color: "white", border: "none", borderRadius: "6px",
+                }}
+              >
+                {updating ? "Updating..." : "Resolve"}
+              </button>
+              <button
+                onClick={() => updateAssetStatus("pending")}
+                disabled={updating}
+                style={{
+                  padding: "10px 20px", cursor: "pointer",
+                  background: "#ffc107", color: "#333", border: "none", borderRadius: "6px",
+                }}
+              >
+                Keep Pending
+              </button>
+            </div>
+          )}
+
+          {message && <p style={{ marginTop: "10px", color: "#555" }}>{message}</p>}
+        </div>
+      )}
     </div>
   );
 }
