@@ -1,5 +1,23 @@
 const pool = require("../db");
 
+const ASSET_TYPES = ["fan", "light", "tap", "projector", "ac", "door", "window", "other"];
+
+exports.getRooms = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM rooms ORDER BY building, block, floor, name"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch rooms" });
+  }
+};
+
+exports.getAssetTypes = async (req, res) => {
+  res.json(ASSET_TYPES);
+};
+
 exports.getRoomAssets = async (req,res) => {
   try {
     const {id} = req.params;

@@ -14,12 +14,18 @@ function RoomMap({
   const [assetFilter,   setAssetFilter]  = useState("all");
   const [message,       setMessage]      = useState("");
   const [updating,      setUpdating]     = useState(false);
+  const [assetTypes,    setAssetTypes]   = useState(["all"]);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetch(`${API_URL}/rooms/${roomId}/assets`)
       .then((res) => res.json())
       .then((data) => setRoomData(data));
+
+    fetch(`${API_URL}/rooms/categories/types`)
+      .then((res) => res.json())
+      .then((types) => setAssetTypes(["all", ...types]))
+      .catch(() => setAssetTypes(["all"]));
 
     const socket = io(API_URL);
 
@@ -38,13 +44,7 @@ function RoomMap({
     });
 
     return () => socket.disconnect();
-  }, [roomId]);  // FIX: roomId in dependency array so a new room triggers a fresh fetch
-
-  // FIX: Asset type options were hardcoded (fan/light/tap).
-  // Now derived from actual data so adding a new type doesn't need a frontend change.
-  const assetTypes = roomData
-    ? ["all", ...new Set(roomData.assets.map((a) => a.type))]
-    : ["all"];
+  }, [roomId]);
 
   const filteredAssets = roomData?.assets.filter(
     (asset) => assetFilter === "all" || asset.type === assetFilter
