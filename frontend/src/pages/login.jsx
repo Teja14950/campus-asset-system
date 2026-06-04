@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
+import Card from "../components/Card";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function Login() {
@@ -40,7 +40,11 @@ function Login() {
       alignItems: "center", background: "#f5f5f5" }}>
       <div style={{ width: "400px", background: "white", padding: "35px",
         borderRadius: "10px", boxShadow: "0 0 10px rgba(0,0,0,0.1)" }}>
-        <h2 style={{ textAlign: "center" }}>Login</h2>
+      <Card>
+        <h2 className="text-3xl font-bold mb-6">
+          Login
+        </h2>
+      </Card>
 
         {error && (
           <p style={{ color: "#e74c3c", background: "#fdecea", padding: "10px",
