@@ -1,12 +1,20 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Home             from "./pages/Home";
-import Login            from "./pages/Login";
-import Register         from "./pages/Register";
-import Dashboard        from "./pages/Dashboard";
+import Home              from "./pages/Home";
+import Login             from "./pages/login";
+import Register          from "./pages/Register";
+import Dashboard         from "./pages/Dashboard";
 import RepairerDashboard from "./pages/repairerDashboard";
-import RepairDetails    from "./pages/repairDetails";
-import ProtectedRoute   from "./components/ProtectedRoute";
+import RepairDetails     from "./pages/repairDetails";
+import ProtectedRoute    from "./components/ProtectedRoute";
+
+import AdminLayout    from "./pages/admin/AdminLayout";
+import AdminOverview  from "./pages/admin/AdminOverview";
+import AdminApprovals from "./pages/admin/AdminApprovals";
+import RoomEditor     from "./pages/admin/RoomEditor";
+import AdminReports   from "./pages/admin/AdminReports";
+import AdminUsers     from "./pages/admin/AdminUsers";
+import AdminSettings  from "./pages/admin/AdminSettings";
 
 function App() {
   return (
@@ -16,33 +24,36 @@ function App() {
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* FIX: Dashboard routes are now wrapped in ProtectedRoute.
-            requiredRole enforces that a repairer can't access /dashboard
-            and a reporter can't access /repair-dashboard. */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requiredRole="reporter">
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/repair-dashboard"
-          element={
-            <ProtectedRoute requiredRole="repairer">
-              <RepairerDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/repair/:id"
-          element={
-            <ProtectedRoute>
-              <RepairDetails />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={
+          <ProtectedRoute requiredRole="reporter">
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/repair-dashboard" element={
+          <ProtectedRoute requiredRole="repairer">
+            <RepairerDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/repair/:id" element={
+          <ProtectedRoute>
+            <RepairDetails />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
+          <Route index            element={<AdminOverview />} />
+          <Route path="approvals" element={<AdminApprovals />} />
+          <Route path="rooms"     element={<RoomEditor />} />
+          <Route path="reports"   element={<AdminReports />} />
+          <Route path="users"     element={<AdminUsers />} />
+          <Route path="settings"  element={<AdminSettings />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
