@@ -2,6 +2,7 @@ import {
   Dashboard,
   Assignment,
   People,
+  Apartment,
   CheckCircle,
   QrCode,
   Settings,
@@ -40,6 +41,11 @@ function Sidebar() {
       text: "Users",
       icon: <People />,
       path: "/admin/users",
+    },
+    {
+      text: "Rooms",
+      icon: <Apartment />,
+      path: "/admin/rooms",
     },
     {
       text: "Approvals",
