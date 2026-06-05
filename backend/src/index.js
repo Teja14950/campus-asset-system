@@ -13,12 +13,14 @@ const reportRoutes = require("./routes/reportRoutes");
 const authRoutes   = require("./routes/authRoutes");
 const roomRoutes   = require("./routes/roomRoutes");
 const adminRoutes  = require("./routes/adminRoutes"); // NEW
+const uploadRoutes = require("./routes/uploadRoutes");
 
 app.use("/users",   userRoutes);
 app.use("/reports", reportRoutes);
 app.use("/auth",    authRoutes);
 app.use("/rooms",   roomRoutes);
 app.use("/admin",   adminRoutes); // NEW — all protected by admin middleware in the router
+app.use("/upload", uploadRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {

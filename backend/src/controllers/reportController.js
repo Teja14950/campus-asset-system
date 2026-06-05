@@ -2,7 +2,7 @@ const pool = require("../db");
 
 exports.createReport = async (req, res) => {
   try {
-    const { asset_id, description } = req.body;
+    const {asset_id,description,image_url,} = req.body;
     const user_id = req.user.id;
 
     if (!asset_id || !description) {
@@ -10,8 +10,16 @@ exports.createReport = async (req, res) => {
     }
 
     const result = await pool.query(
-      "INSERT INTO reports (user_id, asset_id, description) VALUES ($1, $2, $3) RETURNING *",
-      [user_id, asset_id, description]
+      `INSERT INTO reports
+      (user_id, asset_id, description, image_url)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *`,
+      [
+        user_id,
+        asset_id,
+        description,
+        image_url || null,
+      ]
     );
 
     await pool.query(
@@ -36,6 +44,7 @@ exports.getReports = async (req, res) => {
               users.name AS user_name,
               assets.name AS asset_name,
               reports.description,
+              reports.image_url,
               reports.status,
               reports.created_at
        FROM reports
@@ -70,6 +79,31 @@ exports.getMyReports = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch reports" });
+  }
+};
+
+exports.getMySubmissions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      `SELECT reports.*,
+              assets.name AS asset_name
+       FROM reports
+       JOIN assets
+         ON reports.asset_id = assets.id
+       WHERE reports.user_id = $1
+       ORDER BY reports.created_at DESC`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed to fetch reports",
+    });
   }
 };
 
@@ -127,7 +161,7 @@ exports.updateReportStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const VALID_STATUSES = ["pending", "assigned", "resolved"];
+    const VALID_STATUSES = ["pending", "assigned","awaiting_confirmation","resolved"];
     if (!VALID_STATUSES.includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
@@ -152,6 +186,7 @@ exports.updateReportStatus = async (req, res) => {
     const assetStatusMap = {
       pending: "pending",
       assigned: "under_repair",
+      awaiting_confirmation: "under_repair",
       resolved: "working",
     };
 

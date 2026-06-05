@@ -74,6 +74,7 @@ function RepairerDashboard() {
                   assets so asset_name is available in the response. */}
               <th style={{ padding: "10px" }}>Asset</th>
               <th style={{ padding: "10px" }}>Description</th>
+              <th style={{ padding: "10px" }}>Image</th>
               <th style={{ padding: "10px" }}>Status</th>
             </tr>
           </thead>
@@ -95,6 +96,28 @@ function RepairerDashboard() {
                   <td style={{ padding: "10px" }}>{report.asset_name}</td>
                   <td style={{ padding: "10px" }}>{report.description}</td>
                   <td style={{ padding: "10px" }}>
+                    {report.image_url ? (
+                      <a
+                        href={report.image_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) =>
+                          e.stopPropagation()
+                        }
+                      >
+                        View Image
+                      </a>
+                    ) : (
+                      <span
+                        style={{
+                          color: "#999",
+                        }}
+                      >
+                        No Image
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: "10px" }}>
                     <span style={{
                       padding: "3px 10px", borderRadius: "12px", fontSize: "13px",
                       background:
@@ -111,7 +134,7 @@ function RepairerDashboard() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center", padding: "20px", color: "#aaa" }}>
+                <td colSpan="5" style={{ textAlign: "center", padding: "20px", color: "#aaa" }}>
                   No reports assigned yet
                 </td>
               </tr>

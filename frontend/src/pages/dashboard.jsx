@@ -58,7 +58,31 @@ function Dashboard() {
           <h1>Campus Asset Dashboard</h1>
           <p>Welcome, {user?.name}</p>
         </div>
-        <button onClick={handleLogout} style={{ padding: "10px 15px", cursor: "pointer" }}>Logout</button>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          <button
+            onClick={() => navigate("/my-reports")}
+            style={{
+              padding: "10px 15px",
+              cursor: "pointer",
+            }}
+          >
+            My Reports
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "10px 15px",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div style={{ background: "white", padding: "25px", borderRadius: "10px",

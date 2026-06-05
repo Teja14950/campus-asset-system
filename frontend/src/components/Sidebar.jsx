@@ -1,46 +1,119 @@
+import {
+  Dashboard,
+  Assignment,
+  People,
+  CheckCircle,
+  QrCode,
+  Settings,
+} from "@mui/icons-material";
+
+import {
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  Box,
+} from "@mui/material";
+
 import { Link, useLocation } from "react-router-dom";
+
+const drawerWidth = 260;
 
 function Sidebar() {
   const location = useLocation();
 
-  const links = [
-    { name: "Overview", path: "/admin" },
-    { name: "Reports", path: "/admin/reports" },
-    { name: "Users", path: "/admin/users" },
-    { name: "Approvals", path: "/admin/approvals" },
-    { name: "QR Codes", path: "/admin/qr" },
-    { name: "Settings", path: "/admin/settings" },
+  const menuItems = [
+    {
+      text: "Overview",
+      icon: <Dashboard />,
+      path: "/admin",
+    },
+    {
+      text: "Reports",
+      icon: <Assignment />,
+      path: "/admin/reports",
+    },
+    {
+      text: "Users",
+      icon: <People />,
+      path: "/admin/users",
+    },
+    {
+      text: "Approvals",
+      icon: <CheckCircle />,
+      path: "/admin/approvals",
+    },
+    {
+      text: "QR Codes",
+      icon: <QrCode />,
+      path: "/admin/qr",
+    },
+    {
+      text: "Settings",
+      icon: <Settings />,
+      path: "/admin/settings",
+    },
   ];
 
   return (
-    <div className="w-64 min-h-screen bg-slate-900 text-white p-6">
-      <h1 className="text-2xl font-bold">
-        AssetTrack
-      </h1>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
+          width: drawerWidth,
+          boxSizing: "border-box",
+          borderRight: "1px solid #e5e7eb",
+        },
+      }}
+    >
+      <Toolbar />
 
-      <p className="text-slate-400 text-sm mt-1">
-        Campus Intelligence
-      </p>
+      <Box sx={{ p: 3 }}>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+        >
+          AssetTrack
+        </Typography>
 
-      <div className="mt-10 flex flex-col gap-2">
-        {links.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`
-              px-4 py-3 rounded-xl transition
-              ${
-                location.pathname === link.path
-                  ? "bg-blue-600"
-                  : "hover:bg-slate-800"
-              }
-            `}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+        >
+          Campus Intelligence
+        </Typography>
+      </Box>
+
+      <List>
+        {menuItems.map((item) => (
+          <ListItemButton
+            key={item.text}
+            component={Link}
+            to={item.path}
+            selected={
+              location.pathname === item.path
+            }
+            sx={{
+              mx: 1,
+              borderRadius: 2,
+            }}
           >
-            {link.name}
-          </Link>
+            <ListItemIcon>
+              {item.icon}
+            </ListItemIcon>
+
+            <ListItemText
+              primary={item.text}
+            />
+          </ListItemButton>
         ))}
-      </div>
-    </div>
+      </List>
+    </Drawer>
   );
 }
 

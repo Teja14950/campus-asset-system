@@ -1,34 +1,50 @@
-import Card from "./Card";
+import { Card, CardContent, Typography, Box } from "@mui/material";
 
 function StatCard({
   title,
   value,
   icon,
-  change,
+  color = "#1976d2",
 }) {
   return (
-    <Card>
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-slate-500 text-sm">
-            {title}
-          </p>
+    <Card
+      elevation={2}
+      sx={{
+        borderRadius: 3,
+      }}
+    >
+      <CardContent>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              {title}
+            </Typography>
 
-          <h2 className="text-3xl font-bold mt-2">
-            {value}
-          </h2>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+            >
+              {value}
+            </Typography>
+          </Box>
 
-          {change && (
-            <p className="text-green-600 text-sm mt-2">
-              {change}
-            </p>
-          )}
-        </div>
-
-        <div className="text-blue-600">
-          {icon}
-        </div>
-      </div>
+          <Box
+            sx={{
+              fontSize: "2rem",
+              color,
+            }}
+          >
+            {icon}
+          </Box>
+        </Box>
+      </CardContent>
     </Card>
   );
 }

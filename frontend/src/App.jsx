@@ -15,6 +15,7 @@ import AdminReports      from "./pages/admin/AdminReports";
 import AdminUsers        from "./pages/admin/AdminUsers";
 import AdminSettings     from "./pages/admin/AdminSettings";
 import AdminQR           from "./pages/admin/AdminQR";
+import ReporterMyReports from "./pages/ReporterMyReports";
 
 function App() {
   return (
@@ -24,7 +25,10 @@ function App() {
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/room/:id" element={<RoomQR />} />
-
+        <Route
+          path="/my-reports"
+          element={<ReporterMyReports />}
+        />
         <Route path="/dashboard" element={
           <ProtectedRoute requiredRole="reporter"><Dashboard /></ProtectedRoute>
         } />

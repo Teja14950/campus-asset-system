@@ -13,7 +13,12 @@ const { authorizeRoles } = require("../middleware/roleMiddleware");
 router.get("/analytics/damaged-assets", reportController.getMostDamagedAssets);
 router.get("/analytics/repair-time",    reportController.getAverageRepairTime);
 router.get("/my-reports", verifyToken, authorizeRoles("repairer"), reportController.getMyReports);
-
+router.get(
+  "/my-submissions",
+  verifyToken,
+  authorizeRoles("reporter"),
+  reportController.getMySubmissions
+);
 // FIX: GET /reports was unprotected — any anonymous request could list all reports.
 router.get( "/",    verifyToken, reportController.getReports);
 router.post("/",    verifyToken, reportController.createReport);

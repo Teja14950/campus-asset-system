@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-
+import { useRef } from "react";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function RoomMap({
@@ -11,11 +11,13 @@ function RoomMap({
   const [roomData,      setRoomData]      = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [description,   setDescription]  = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [assetFilter,   setAssetFilter]  = useState("all");
   const [message,       setMessage]      = useState("");
   const [updating,      setUpdating]     = useState(false);
   const [assetTypes,    setAssetTypes]   = useState(["all"]);
   const token = localStorage.getItem("token");
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/rooms/${roomId}/assets`)
@@ -52,29 +54,80 @@ function RoomMap({
 
   const submitReport = async () => {
     if (!selectedAsset || !description.trim()) {
-      setMessage("Select an asset and describe the issue");
+      setMessage(
+        "Select an asset and describe the issue"
+      );
       return;
     }
+
     try {
-      const res = await fetch(`${API_URL}/reports`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ asset_id: selectedAsset.id, description }),
-      });
+      let imageUrl = null;
+
+      if (imageFile) {
+        const formData = new FormData();
+
+        formData.append(
+          "image",
+          imageFile
+        );
+
+        const uploadRes = await fetch(
+          `${API_URL}/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const uploadData =
+          await uploadRes.json();
+
+        imageUrl =
+          uploadData.imageUrl;
+      }
+
+      const res = await fetch(
+        `${API_URL}/reports`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            asset_id:
+              selectedAsset.id,
+            description,
+            image_url: imageUrl,
+          }),
+        }
+      );
 
       if (!res.ok) {
-        const err = await res.json();
-        setMessage(err.error || "Failed to submit report");
+        const err =
+          await res.json();
+
+        setMessage(
+          err.error ||
+            "Failed to submit report"
+        );
+
         return;
       }
 
-      setMessage("Report submitted successfully");
+      setMessage(
+        "Report submitted successfully"
+      );
+
       setDescription("");
-    } catch {
-      setMessage("Something went wrong");
+      setImageFile(null);
+    } catch (err) {
+      console.error(err);
+
+      setMessage(
+        "Failed to submit report"
+      );
     }
   };
 
@@ -204,6 +257,35 @@ function RoomMap({
                 placeholder="Describe the issue..."
                 style={{ width: "100%", padding: "10px", marginTop: "10px", height: "80px" }}
               />
+              <div style={{ marginTop: "10px" }}>
+                <input
+                  ref ={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setImageFile(e.target.files[0])
+                  }
+                />
+                {imageFile && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
+                    }}
+                    style={{
+                      marginTop: "10px",
+                      padding: "6px 12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove Image
+                  </button>
+                )}
+              </div>
               <button
                 onClick={submitReport}
                 style={{ marginTop: "10px", padding: "10px 20px", cursor: "pointer" }}
